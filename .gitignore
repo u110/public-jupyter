@@ -1,1 +1,3 @@
 kaggle/coupon-purchase-prediction/data/*
+.*
+*.gz
