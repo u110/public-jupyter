@@ -6,6 +6,11 @@ import pandas as pd
 
 SIM_SIZE = 10 #8 * 60
 
+def simlog(m):
+    with open("./data.tsv","a") as f:
+        f.write(m+"\n")
+
+
 class Person(object):
     def __init__(self, name, env):
         self.name = name
@@ -13,10 +18,10 @@ class Person(object):
 
     def is_need_to_go(self):
         if np.random.rand() <= 1/3:
-                print("%s\t%2d\tコーヒー飲みたい！" % (self.name, self.env.now))
+                simlog("%s\t%2d\tコーヒー飲みたい！" % (self.name, self.env.now))
                 return True
         else:
-                print("%s\t%2d\t仕事しよ。。" % (self.name, self.env.now))
+                simlog("%s\t%2d\t仕事しよ。。" % (self.name, self.env.now))
                 return False
 
     def run(self):
@@ -25,13 +30,12 @@ class Person(object):
                 with coffee_garden.request() as req:
                     yield req
                     yield self.env.timeout(3)
-                    print("%s\t%2d\tコーヒー美味しい😊" % (self.name, self.env.now))
+                    simlog("%s\t%2d\tコーヒー美味しい😊" % (self.name, self.env.now))
             yield self.env.timeout(1)
 
 def monitor(resource,env):
     while True:
-        print("Dropping\t%2d\t%2d" % (resource._env.now, resource.count))
-        print("Waiting\t%2d\t%2d" % (resource._env.now, len(resource.queue)))
+        simlog("Waiting\t%2d\t%2d" % (resource._env.now, resource.count+len(resource.queue)))
         yield env.timeout(1)
 
 
@@ -44,5 +48,4 @@ env.process(Person("Ciro",env).run())
 env.process(monitor(coffee_garden, env))
 
 env.run(until=SIM_SIZE)
-
 
