@@ -1,3 +1,3 @@
 setup:
 	python -m virtualenv venv
-	# ex. $source venv/bin/activate
+	(source venv/bin/activate ; pip install -r requirements.txt)
