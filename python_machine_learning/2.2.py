@@ -8,7 +8,6 @@ class Perceptron(object):
     eta: 学習率
     n_iter: トレーニング回数
 
-
     attributes:
 
     w_
@@ -21,7 +20,7 @@ class Perceptron(object):
 
     def fit(self, X, y):
         """ fit train data
-        
+
         X:
         y:
         """
@@ -38,11 +37,9 @@ class Perceptron(object):
             self.errors_.append(errors)
         return self
 
-
     def net_input(self, X):
         """ total input """
         return np.dot(X, self.w_[1:] + self.w_[0])
-
 
     def predict(self, X):
         return np.where(self.net_input(X) >= 0.0, 1, -1)
