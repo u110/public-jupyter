@@ -1,4 +1,4 @@
 lint:
-	flake8 .
+	flake8 mymodule
 setup:
 	pip install -e .
