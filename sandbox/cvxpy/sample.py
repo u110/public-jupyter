@@ -1,29 +1,5 @@
-# utf-8
-
 import cvxpy
-import numpy as np
-
-#  frame_payout = np.array([22, 12, 19, 10, 35, 32, 42, 53])  # 消化金額
-#  frame_amount = np.array([22, 12, 16, 10, 35, 26, 42, 53])  # 売上
-#  campaign_budget = 100                                      # 予算
-#  
-#  x = cvxpy.Bool(frame_payout.shape[0])  # 変数の設定
-#  objective = cvxpy.Maximize(frame_amount * x)
-#  aaa = frame_payout * x,
-#  constraints = [
-#      campaign_budget >= sum(aaa),
-#      cvxpy.norm1(x) <= 1  # x はどれかひとつだけしか選べない
-#  ]
-#  
-#  
-#  prob = cvxpy.Problem(objective, constraints)
-#  prob.solve(solver=cvxpy.ECOS_BB)
-#  
-#  result = [round(ix[0, 0]) for ix in x.value]
-#  
-#  print("status:", prob.status)
-#  print("optimal value", prob.value)
-#  print("result x:", result)
+import numpy as np 
 
 class MySolver(object):
     def __init__(self, budget=None):
@@ -31,15 +7,15 @@ class MySolver(object):
         self.x = {}
         self.payouts = {}
         self.amounts = {}
-        self.obj= None
-        self.prob= None
-        self.consts= []
+        self.obj = None
+        self.problem = None
+        self.consts = []
 
     def add(self, key, payouts, amounts):
         self.payouts[key] = payouts
         self.amounts[key] = amounts
 
-    def solve(self):
+    def _setup(self):
         all_payouts = None
         for k in self.payouts.keys():
             self.x[k] = cvxpy.Bool(self.payouts[k].shape[0])
@@ -53,21 +29,38 @@ class MySolver(object):
             if self.obj is None:
                 self.obj = self.amounts[k] * self.x[k]
             else:
-                self.obj+= self.amounts[k] * self.x[k]
+                self.obj += self.amounts[k] * self.x[k]
 
-        self.obj= cvxpy.Maximize(self.obj)
-        self.consts.append(
-                self.budget >= all_payouts
-        )
+        self.obj = cvxpy.Maximize(self.obj)             # 合計売上の最大化
+        self.consts.append(self.budget >= all_payouts)  # 合計費用の予算上限の制約
+
+    def solve(self):
+        self._setup()
         self.problem = cvxpy.Problem(self.obj, self.consts)
-        self.problem.solve(solver=cvxpy.ECOS_BB)
+        self.problem.solve(solver=cvxpy.ECOS_BB)        # MIP 混合整数問題用ソルバ
         return self.problem, self.x
+
+    def payouts(self):
+        res = 0
+        for k in self.payouts.keys():
+            res += self.payouts[k] * self.x
+        return res
 
 
 if __name__ == "__main__":
-    a = MySolver(budget=100)
-    a.add("frame_1", np.array([1,2,3]), np.array([20,30,25]))
-    a.add("frame_2", np.array([1,2,3]), np.array([20,30,25]))
-    a.add("frame_3", np.array([1,2,3]), np.array([20,30,25]))
+    a = MySolver(budget=500)
+    a.add("frame_1", np.array([100, 200, 300]), np.array([20, 35, 25]))
+    a.add("frame_2", np.array([100, 200, 300]), np.array([20, 30, 28]))
+    a.add("frame_3", np.array([100, 200, 300]), np.array([23, 30, 25]))
     a.solve()
-    print(a.x["frame_1"].value)
+
+    selected = {}
+    payouts = 0
+    for k in a.x.keys():
+        selected[k] = [round(ix[0, 0]) for ix in a.x[k].value]
+        print(k, selected[k])
+        payouts += np.sum(selected[k] * a.payouts[k])
+
+    print("optimal amount: ", a.problem.value)
+    print("capped payout : ", payouts)
+
