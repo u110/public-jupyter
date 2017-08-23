@@ -4,3 +4,4 @@ kaggle/coupon-purchase-prediction/data/*
 venv
 __pycache__
 *.egg-info
+*.pyc
