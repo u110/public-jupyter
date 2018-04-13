@@ -1,3 +1,4 @@
+import numpy as np
 from numpy.random import seed
 
 
@@ -27,7 +28,7 @@ class AdalineSGD(object):
     :randome_state: int デフォルト: None
     """
 
-    def __init__(self, eta=0.01, n_iter=10, shuffle=True, randome_state=None):
+    def __init__(self, eta=0.01, n_iter=10, shuffle=True, random_state=None):
         self.eta = eta
         self.n_iter = n_iter
         self.w_initialized = False
@@ -35,7 +36,7 @@ class AdalineSGD(object):
 
         # randome_stateが指定された場合は乱数種を指定する
         if random_state:
-            seed(randome_state)
+            seed(random_state)
 
     def fit(self, X, y):
         """ トレーニングデータに適合させる
